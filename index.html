@@ -12,9 +12,6 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ChambaYa — tres productos sobre una sola marca.
    Layout: Cliente = web de consumo con barra superior · Pro = panel con barra lateral oscura · Consola = herramienta densa con pestañas. */
@@ -723,6 +720,136 @@ body{background:var(--bg)}
   .demo{bottom:calc(84px + env(safe-area-inset-bottom))}
   .intro-art{transform:scale(.92)}
 }
+
+/* ============================ Diseño minimalista ============================ */
+/* Fuente del sistema (SF Pro en iPhone, Segoe en Windows), fondo neutro, líneas de 1 px,
+   casi sin sombras. El verde es el único color de marca; el amarillo marca lo pendiente. */
+:root{
+  --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg:#f6f7f6; --surface:#ffffff; --sunk:#f1f3f2; --line:#e4e7e5; --line2:#eef0ef;
+  --ink:#141816; --ink2:#3e4743; --muted:#6c7571;
+  --brand:#0e6b55; --brand-ink:#0a5241; --brand-soft:#e7f1ed; --accent:#e9a23b; --accent-soft:#fcf3e3;
+  --r:10px; --r-lg:18px;
+  --sh:none; --sh-lg:0 24px 60px rgba(20,24,22,.16), 0 2px 6px rgba(20,24,22,.06);
+  --kb-fffcf4:#ffffff; --kb-fff8e6:#ffffff; --kb-fffaf0:#ffffff; --kb-fffcf3:#ffffff; --kb-f6f4ef:var(--bg);
+}
+html[data-theme="dark"]{
+  --bg:#0f1211; --surface:#161a19; --sunk:#1c2120; --line:#272d2b; --line2:#202624;
+  --ink:#eceeed; --ink2:#c4cac7; --muted:#8c9592;
+  --brand:#16856a; --brand-ink:#86d4bd; --brand-soft:#15302a; --accent:#e9a23b; --accent-soft:#33291a;
+  --sh:none; --sh-lg:0 24px 60px rgba(0,0,0,.6);
+  --kb-fffcf4:var(--surface); --kb-fff8e6:var(--surface); --kb-fffaf0:var(--surface); --kb-fffcf3:var(--surface); --kb-f6f4ef:var(--bg);
+}
+body{font-family:var(--f-body);font-size:15px;letter-spacing:-.006em;background:var(--bg)}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:-.022em}
+h1{font-size:30px;font-weight:700;line-height:1.12} h2{font-size:19px;font-weight:650} h3{font-weight:650}
+.eyebrow{text-transform:none;letter-spacing:0;font-weight:500;font-size:13px}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* superficies */
+.card{border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:none}
+.modal{border-radius:20px;border:1px solid var(--line);box-shadow:var(--sh-lg)}
+.ov{background:rgba(15,18,17,.38);backdrop-filter:blur(3px)}
+
+/* controles */
+.btn{border-radius:10px;font-weight:600;box-shadow:none!important;border-color:var(--line);transition:background .15s,border-color .15s,color .15s}
+.btn.pri,.btn.dark{border-radius:10px;padding-left:16px;padding-right:16px}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff} .btn.pri:hover{background:var(--brand-ink);border-color:var(--brand-ink)}
+html[data-theme="dark"] .btn.pri:hover{background:#1a9a7b;border-color:#1a9a7b}
+.btn:not(.pri):not(.danger):not(.call-hang):not(.call-ok):hover{background:var(--sunk);border-color:var(--line)}
+.btn.lg{border-radius:12px}
+.in,select.in,textarea.in,.inp-group{border-radius:10px!important;border-color:var(--line);background:var(--surface)}
+.in:focus,select.in:focus,textarea.in:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);outline:none}
+.chip{border-radius:999px;font-weight:500}
+.pill{font-weight:600;font-size:12px;padding:3px 9px}
+
+/* avisos: neutros, el color va solo en el ícono */
+.notice,.notice.ok,.notice.info,.notice.warn,.notice.bad,.notice.plain{background:var(--surface);color:var(--ink2);border:1px solid var(--line);border-radius:14px}
+.notice.ok>svg:first-child{color:var(--ok)} .notice.info>svg:first-child{color:var(--info)} .notice.warn>svg:first-child{color:var(--warn)} .notice.bad>svg:first-child{color:var(--bad)}
+.notice.bad{border-color:color-mix(in srgb, var(--bad) 35%, var(--line))} .notice.warn{border-color:color-mix(in srgb, var(--accent) 45%, var(--line))}
+
+/* cabecera del cliente */
+.c-top,html[data-theme="dark"] .c-top{background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:saturate(1.4) blur(12px);box-shadow:none;border-bottom:1px solid var(--line)}
+.c-logo{font-weight:700;letter-spacing:-.03em}
+.c-nav button{font-weight:500;color:var(--muted)} .c-nav button:hover{background:var(--sunk);color:var(--ink)}
+.c-nav button.on{color:var(--ink);background:var(--sunk);font-weight:600}
+.loc{background:transparent!important;border:1px solid var(--line)!important}
+
+/* inicio del cliente: la pregunta grande es lo único llamativo */
+.hero{background:none!important;color:var(--ink);padding:28px 0 8px;border-radius:0;display:block;overflow:visible}
+.hero .ring,.hero .h-art,.hero .wave{display:none}
+.hero .hi{font-size:15px;color:var(--muted);margin:0 0 6px;opacity:1}
+.hero h1{color:var(--ink);font-size:clamp(34px,5.4vw,56px);line-height:1.02;letter-spacing:-.04em;max-width:15ch;font-weight:750}
+.hero p{color:var(--muted);opacity:1;font-size:16px;margin-top:12px;max-width:52ch}
+.hero .search{margin-top:24px;max-width:640px;border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 16px;box-shadow:none;background:var(--surface)}
+.hero .search:focus-within{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.hero .search .btn{border-radius:10px}
+.cats{gap:10px}
+.cat,.cats .cat{border:1px solid var(--line);border-radius:16px;box-shadow:none;padding:16px;background:var(--surface)}
+.cat:hover{border-color:color-mix(in srgb, var(--ink) 22%, var(--line));transform:none}
+.cats .cat .ci,.cat .ci{background:var(--sunk)!important;color:var(--ink)!important;width:40px;height:40px;border-radius:12px}
+
+.task-row,.pro-card,.trust .t{border:1px solid var(--line);border-radius:18px;box-shadow:none}
+.task-row:hover,.pro-card:hover{border-color:color-mix(in srgb, var(--ink) 22%, var(--line));box-shadow:none}
+.cat:hover{box-shadow:none}
+/* pestañas tipo control segmentado */
+.ttabs{background:var(--sunk);border:0;border-radius:12px;padding:4px;gap:2px}
+.ttabs button{font-weight:600;color:var(--muted);border-radius:9px;padding:8px 14px}
+.ttabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(20,24,22,.08),0 0 0 1px var(--line)}
+.ttabs button.on .count{background:var(--brand);color:#fff}
+.go-card:hover{box-shadow:none;border-color:color-mix(in srgb, var(--ink) 22%, var(--line))}
+
+/* progreso de la tarea */
+.tracker .st .dot{width:18px;height:18px;border-width:1.5px}
+.tracker .st:not(:last-child):after{top:8.5px;left:18px;height:1.5px}
+.tracker .st.cur .dot{box-shadow:0 0 0 3px var(--brand-soft)}
+
+/* app del profesional: barra lateral clara */
+.p-side{background:var(--surface);color:var(--ink2);border-right:1px solid var(--line)}
+.p-side .plogo{color:var(--ink)} .p-side .plogo small{color:var(--brand)}
+.p-side button.nav{color:var(--muted);font-weight:500}
+.p-side button.nav:hover{background:var(--sunk);color:var(--ink)}
+.p-side button.nav.on,html[data-theme="dark"] .p-side button.nav.on{background:var(--sunk);color:var(--ink);font-weight:600}
+.p-side .me{background:transparent!important;border:1px solid var(--line)!important}
+.p-side .me .sb{color:var(--ink)} .p-side .me .xs{color:var(--muted)!important}
+.p-side .me .icon-btn{color:var(--ink2)!important;border-color:var(--line)!important;background:transparent!important}
+.kpi .v{font-weight:650;letter-spacing:-.035em}
+
+html[data-theme="dark"] .btn.dark,html[data-theme="dark"] .chip.on,html[data-theme="dark"] .map-tools button.on,html[data-theme="dark"] .map-hint{color:var(--bg)}
+html[data-theme="dark"] .chip.on .count,html[data-theme="dark"] .chip.on span{color:var(--bg)}
+/* consola de soporte: misma barra lateral clara */
+.z-side{background:var(--surface);color:var(--ink2);border-right:1px solid var(--line)}
+.z-brand{color:var(--ink)} .z-brand small{color:var(--muted)} .z-brand .logo-mark{background:var(--brand);color:#fff}
+.z-grp,.k-side .grp{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;color:var(--muted)}
+.z-nav{color:var(--muted);font-weight:500} .z-nav:hover{background:var(--sunk);color:var(--ink)}
+.z-nav.on{background:var(--sunk);color:var(--ink);font-weight:600} .z-nav.on .z-count{background:var(--bad)}
+.z-agent{border-top-color:var(--line);color:var(--ink)}
+.tbl th,.k-card h3{text-transform:none;letter-spacing:0;font-weight:600}
+.k-side .klogo .logo-mark{background:var(--brand)}
+
+/* chat */
+.chat{box-shadow:none;border-radius:18px}
+.chat .msgs,html[data-theme="dark"] .chat .msgs{background:var(--bg);background-image:none}
+.bub{border:0;background:var(--surface);box-shadow:0 0 0 1px var(--line)} .bub.me{box-shadow:none}
+.ev{background:transparent;border:0;color:var(--muted);padding:4px 10px} .ev .ev-i{background:var(--sunk);color:var(--ink2)}
+.ev.ask{background:var(--surface);border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line));color:var(--ink2)} .ev.ask .ev-i{background:var(--accent-soft);color:var(--warn)}
+.ch-day span{border:0;background:var(--sunk);color:var(--muted);font-weight:600;text-transform:none}
+.next-step{border:1px solid var(--line);box-shadow:none;border-left:3px solid var(--brand)}
+.next-step .ns-h{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600}
+.ch-remind{background:var(--surface);border-bottom:1px solid var(--line);color:var(--ink2)} .ch-remind>svg{color:var(--warn)}
+.offer-m{box-shadow:none} .offer-m.live{border-color:var(--accent);box-shadow:none}
+
+/* inicio de la demo e introducción */
+.launch{background:var(--bg)}
+.launch h1{font-size:clamp(32px,5vw,48px);letter-spacing:-.04em;line-height:1.05}
+
+@media (max-width:640px){
+  .hero{padding-top:16px} .hero h1{font-size:36px}
+  .modal{border-radius:20px 20px 0 0;border-bottom:0}
+  .p-side{border-right:0;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
 </style>
 </head>
 <body>
@@ -1485,7 +1612,7 @@ function launcher(){
       <a class="app-card" href="#cliente"><div class="ai" style="background:var(--brand)">${ic('home',24)}</div><div><h2>ChambaYa</h2><p class="muted sm">App para clientes</p></div>
         <ul><li>${ic('check',15)}Elegí un profesional verificado cerca de tu casa</li><li>${ic('check',15)}Pedí una visita técnica y acordá el precio en el chat</li><li>${ic('check',15)}Aprobá la factura, agregá propina y calificá</li></ul><span class="go">Abrir app ${ic('arrowR',16)}</span></a>
       <a class="app-card" href="#pro"><div class="ai" style="background:var(--pro-side)">${ic('brief',24)}</div><div><h2>ChambaYa Pro</h2><p class="muted sm">App para profesionales</p></div>
-        <ul><li>${ic('check',15)}Poné tus precios y aceptá o contraofertá</li><li>${ic('check',15)}Dibujá tu zona de trabajo en el mapa</li><li>${ic('check',15)}Enviá tu factura de horas y gastos</li></ul><span class="go">Abrir app ${ic('arrowR',16)}</span></a>
+        <ul><li>${ic('check',15)}Acordá el precio con el cliente en el chat</li><li>${ic('check',15)}Dibujá tu zona de trabajo en el mapa</li><li>${ic('check',15)}Enviá la factura con los recibos de materiales</li></ul><span class="go">Abrir app ${ic('arrowR',16)}</span></a>
       <a class="app-card" href="#soporte"><div class="ai" style="background:var(--con)">${ic('headset',24)}</div><div><h2>Consola de soporte</h2><p class="muted sm">Uso interno</p></div>
         <ul><li>${ic('check',15)}Tickets con todo el contexto del cliente y del profesional</li><li>${ic('check',15)}Facturas, propinas, gastos y reembolsos</li><li>${ic('check',15)}Verificación y pagos semanales</li></ul><span class="go">Abrir consola ${ic('arrowR',16)}</span></a>
       <a class="app-card" href="#admin"><div class="ai" style="background:#6d4bd8">${ic('trend',24)}</div><div><h2>Finanzas</h2><p class="muted sm">Solo fundador</p></div>
@@ -1560,7 +1687,7 @@ function cliHome(){
   const list = CATS.filter(c=>!q || (c.name+' '+c.ex).toLowerCase().includes(q));
   const mine = S.tasks.filter(t=>t.client===u.id && !['completada','cancelada','rechazada'].includes(t.status));
   return `${debtBanner(u.id)}<div class="stack loose">
-    <section class="hero"><div class="ring"></div>${heroArt()}<h1>Hola ${esc(first(u.name))} <span class="wave">👋</span><br>¿qué necesitás resolver hoy?</h1><p>Profesionales verificados en ${esc(city(u.city).name)}. Pagás solo las horas trabajadas.</p>
+    <section class="hero"><p class="hi">Hola, ${esc(first(u.name))}</p><h1>¿Qué necesitás resolver hoy?</h1><p>Profesionales verificados en ${esc(city(u.city).name)}. El precio lo acordás con el profesional en el chat.</p>
       <form class="search" data-form="cli-search" role="search">${ic('search',19)}<input name="q" value="${esc(UI.cli.q)}" placeholder="Ej: electricista, fuga, aire acondicionado" data-inp="cli-q" aria-label="Buscar servicio"><button class="btn pri">Buscar</button></form></section>
     ${creditBal(u.id)?`<div class="notice ok">${ic('gift',18)}<span><b>Tenés ${L(creditBal(u.id))} de crédito.</b> Se descuenta automáticamente de tu próxima factura.</span></div>`:''}
     ${mine.length?`<section class="stack tight"><div class="row between"><h2>Tus tareas activas</h2><button class="btn ghost sm" data-act="cli-nav" data-v="tasks">Ver todas ${ic('right',14)}</button></div>${mine.slice(0,2).map(cliTaskRow).join('')}</section>`:''}
