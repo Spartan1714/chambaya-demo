@@ -820,6 +820,21 @@ html:not([data-theme="dark"]) .cats .cat .ci{background:var(--brand-soft)!import
 .trow-bar{height:4px;border-radius:4px;background:var(--raise);margin-top:9px;overflow:hidden;max-width:240px}
 .trow-bar i{display:block;height:100%;background:var(--brand);border-radius:4px}
 
+[hidden]{display:none!important}
+/* sugerencias del buscador */
+.hero .search{position:relative}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:var(--sh-lg);max-height:360px;overflow:auto;text-align:left}
+html[data-theme="dark"] .sugg{background:var(--raise);border-color:#3a3a3c}
+.sugg button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--ink);padding:10px;border-radius:12px;cursor:pointer;font:inherit;text-align:left}
+.sugg button[aria-selected="true"],.sugg button:hover{background:var(--sunk)}
+html[data-theme="dark"] .sugg button[aria-selected="true"],html[data-theme="dark"] .sugg button:hover{background:#3a3a3c}
+.sugg .si{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex-shrink:0}
+.sugg b{display:block;font-weight:600} .sugg small{display:block;color:var(--muted);font-size:12.5px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sugg mark{background:none;color:var(--brand);font-weight:700}
+.sugg>button>svg:last-child{color:var(--muted);flex-shrink:0}
+.sugg-empty{display:flex;gap:8px;align-items:center;padding:12px;color:var(--muted);font-size:14px}
+.cats{display:grid}
+
 /* pestañas tipo control segmentado */
 .ttabs{background:var(--surface);border:0;border-radius:16px;padding:4px;gap:2px}
 .ttabs button{font-weight:600;color:var(--muted);border-radius:12px;padding:9px 16px}
@@ -1059,6 +1074,38 @@ const CATS = [
   {id:'armado', mode:'precio', name:'Armado de muebles', icon:'box', min:120, max:220, ex:'Camas, closets, escritorios'},
 ];
 const cat = id => CATS.find(c=>c.id===id) || {name:id, icon:'wrench', mode:'hora'};
+// Palabras que la gente usa para cada servicio (búsqueda en vivo)
+const KW = {
+  electricidad:'electricista electrico electrica luz breaker breakers toma tomas tomacorriente enchufe lampara lamparas foco focos cable cables corto cortocircuito apagon interruptor apagador ventilador abanico instalacion electrica medidor timbre',
+  plomeria:'plomero fontanero fuga fugas agua tuberia tubo tubos llave llaves chorro grifo inodoro sanitario taza lavamanos lavatrastos fregadero ducha regadera calentador drenaje destapar tapado tapada pila tanque bomba cisterna goteo',
+  aire:'aire acondicionado ac split minisplit clima frio enfria recarga gas refrigerante mantenimiento aire unidad',
+  limpieza:'limpiar limpia aseo barrer trapear limpieza profunda post obra sofa alfombra vidrios ventanas cocina banos desinfeccion',
+  pintura:'pintor pintar pinta paredes pared brocha rodillo impermeabilizar impermeabilizacion techo fachada retoque',
+  carpinteria:'carpintero madera puerta puertas closet closets mueble muebles mesa gaveta gavetas bisagra repisa estante',
+  cerrajeria:'cerrajero chapa chapas cerradura candado llave perdida perdi llaves quede afuera abrir puerta duplicado copia llave',
+  electro:'electrodomestico lavadora refri refrigeradora nevera estufa microondas secadora horno licuadora tecnico reparacion',
+  jardin:'jardinero jardin chapia chapear zacate grama cesped poda podar arbol arboles cortar plantas maleza',
+  armado:'armar ensamblar montar cama camas escritorio silla librero mueble caja tele television tv colgar repisa'
+};
+const fold = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+// Devuelve las categorías que coinciden con lo escrito, de la más a la menos parecida
+function searchCats(q){
+  const STOP = new Set(['me','mi','de','el','la','lo','en','se','un','una','los','las','del','al','por','con','que','para','y','o','es','hay','mis','su','tengo','necesito','quiero','ayuda']);
+  const words = fold(q).split(/[^a-z0-9ñ]+/).filter(w=>w.length>=2 && !STOP.has(w));
+  if(!words.length) return [];
+  return CATS.map(c=>{
+    const name=fold(c.name), ex=fold(c.ex), kws=(KW[c.id]||'').split(' '); let score=0, hit='';
+    for(const w of words){
+      let best=0, why='';
+      if(name.startsWith(w) || name.split(' ').some(x=>x.startsWith(w))){ best=100; }
+      else { const k=kws.find(x=>x.startsWith(w)); if(k){ best=80; why=k; }
+        else if(ex.split(/[ ,]+/).some(x=>x.startsWith(w))){ best=60; why=''; }
+        else if(w.length>=4 && (name.includes(w)||kws.some(x=>x.includes(w)))){ best=30; why=kws.find(x=>x.includes(w))||''; } }
+      score+=best; if(why && !hit) hit=why;
+    }
+    return {c, score, hit};
+  }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score);
+}
 // Precio acordado: el cliente ofrece, el profesional acepta o contraoferta. ChambaYa cobra su % del precio acordado.
 const isPrice = t => t && t.mode==='precio';
 const quoteRejected = t => !!t.quoteNo || (t.ext||[]).some(x=>x.kind==='presupuesto' && x.status==='rechazada');
@@ -1731,14 +1778,14 @@ function cliWelcome(){
 }
 function cliHome(){
   const u = me(), q = UI.cli.q.toLowerCase();
-  const list = CATS.filter(c=>!q || (c.name+' '+c.ex).toLowerCase().includes(q));
+  const list = q ? searchCats(q).map(r=>r.c) : CATS;
   const mine = S.tasks.filter(t=>t.client===u.id && !['completada','cancelada','rechazada'].includes(t.status));
   return `${debtBanner(u.id)}<div class="stack loose">
     <section class="hero"><p class="hi">Hola, ${esc(first(u.name))}</p><h1>¿Qué necesitás resolver hoy?</h1><p>Profesionales verificados en ${esc(city(u.city).name)}. El precio lo acordás con el profesional en el chat.</p>
-      <form class="search" data-form="cli-search" role="search">${ic('search',19)}<input name="q" value="${esc(UI.cli.q)}" placeholder="Ej: electricista, fuga, aire acondicionado" data-inp="cli-q" aria-label="Buscar servicio"><button class="btn pri">Buscar</button></form></section>
+      <form class="search" data-form="cli-search" role="search">${ic('search',19)}<input name="q" value="${esc(UI.cli.q)}" placeholder="Ej: electricista, fuga, aire acondicionado" data-inp="cli-q" aria-label="Buscar servicio" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugg"><button class="btn pri">Buscar</button></form></section>
     ${creditBal(u.id)?`<div class="notice ok">${ic('gift',18)}<span><b>Tenés ${L(creditBal(u.id))} de crédito.</b> Se descuenta automáticamente de tu próxima factura.</span></div>`:''}
     ${mine.length?`<section class="stack tight"><div class="row between"><h2>Tus tareas activas</h2><button class="btn ghost sm" data-act="cli-nav" data-v="tasks">Ver todas ${ic('right',14)}</button></div>${mine.slice(0,2).map(cliTaskRow).join('')}</section>`:''}
-    <section class="stack"><h2>Servicios</h2>${list.length?`<div class="cats">${list.map(c=>`<button class="cat" data-act="book-start" data-cat="${c.id}"><span class="ci">${ic(c.icon,21)}</span><span class="cn">${c.name}</span><span class="cp">${c.ex}</span></button>`).join('')}</div>`:`<div class="empty"><span class="ei">${ic('search',22)}</span>No encontramos "${esc(UI.cli.q)}". Probá con otra palabra.</div>`}</section>
+    <section class="stack"><h2>Servicios</h2>${list.length?`<div class="cats">${list.map(c=>`<button class="cat" data-act="book-start" data-cat="${c.id}"><span class="ci">${ic(c.icon,21)}</span><span class="cn">${c.name}</span><span class="cp">${c.ex}</span></button>`).join('')}</div>`:''}<div class="empty" id="cats-empty" ${list.length?'hidden':''}><span class="ei">${ic('search',22)}</span><span>No encontramos "<b class="q-echo">${esc(UI.cli.q)}</b>". Probá con otra palabra, por ejemplo "fuga" o "electricista".</span></div></section>
     <section class="trust">
       <div class="t"><span class="ti">${ic('shield',19)}</span><div><h3>Profesionales verificados</h3><p class="sm muted">Revisamos DNI, selfie y antecedentes penales y policiales.</p></div></div>
       <div class="t"><span class="ti">${ic('clock',19)}</span><div><h3>Acordás el precio en el chat</h3><p class="sm muted">El profesional revisa y te manda su presupuesto. Lo pueden negociar. Sin sorpresas.</p></div></div>
@@ -3275,7 +3322,7 @@ const A = {
   'cli-logout'(){ S.sessions.cliente = null; render(); },
   'cli-nav'(e,el){ UI.cli.view = el.dataset.v; UI.cli.task=null; UI.cli.ticket=null; render(); window.scrollTo(0,0); },
   'cli-task'(e,el){ UI.cli.view='task'; UI.cli.task=el.dataset.id; UI.cli.tab='resumen'; UI.cli.tip=null; UI.cli.rate=5; render(); window.scrollTo(0,0); },
-  'book-start'(e,el){ UI.cli.booking = {step:1, cat:el.dataset.cat, hours:2, time:'09:00'}; UI.cli.view='book'; render(); window.scrollTo(0,0); },
+  'book-start'(e,el){ const q=(el.dataset.q ?? UI.cli.q ?? '').trim(); UI.cli.booking = {step:1, cat:el.dataset.cat, hours:2, time:'09:00', title: q.split(/\s+/).filter(Boolean).length>=2 ? q.charAt(0).toUpperCase()+q.slice(1) : ''}; UI.cli.q=''; UI.cli.view='book'; render(); window.scrollTo(0,0); },
   'book-sort'(e,el){ UI.cli.booking.sort = el.dataset.s; render(); },
   'book-pick'(e,el){ const b=UI.cli.booking; b.pro = el.dataset.id; b.price = cat(b.cat).mode==='precio' ? proAsk(P(b.pro), b.cat, b.offer, b.diag) : null; UI.cli.booking.step = 3; closeModal(); render(); window.scrollTo(0,0); },
   'book-back'(){ const b=UI.cli.booking; b.step = Math.max(1,b.step-1); render(); },
@@ -3565,7 +3612,10 @@ const F = {
     if(!f.off.checked && f.start.value>=f.end.value) return toast('La hora de fin debe ser después de la de inicio','alert');
     let n=0; for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){ if(!dows.includes(d.getDay())) continue; p.schedule[dkey(d)] = f.off.checked?{on:false, from:f.start.value, to:f.end.value}:{on:true, from:f.start.value, to:f.end.value}; n++; }
     render(); toast(`Horario aplicado a ${n} días`); },
-  'cli-search'(f){ UI.cli.q=f.q.value.trim(); render(); },
+  'cli-search'(f){ const q=f.q.value.trim(), r=searchCats(q); UI.cli.q=q;
+    const sel = f.querySelector('.sugg [aria-selected="true"]') || f.querySelector('.sugg button');
+    if(q && (sel || r.length)) return A['book-start'](null, {dataset:{cat: sel ? sel.dataset.cat : r[0].c.id, q}});
+    render(); },
   'book-1'(f){ const b=UI.cli.booking; Object.assign(b,{title:f.title.value.trim(), details:f.details.value.trim(), date:f.date.value, time:f.time.value, hours:+f.hours.value, address:f.address.value.trim(), step:2});
     if(cat(b.cat).mode==='precio'){ b.diag=true; b.offer=null; } if(new Date(b.date+'T'+b.time+':00') < new Date(Date.now()+60*6e4)){ b.step=1; return toast('Elegí una hora con al menos 1 hora de anticipación','alert'); } render(); window.scrollTo(0,0); },
   'book-pay'(f){
@@ -3722,7 +3772,7 @@ const C = {
 };
 const I = {
   net(el){ const o=el.closest('.net-wrap')?.querySelector('.net-out'); if(o) o.textContent = +el.value>0 ? `Recibís ${L(proShare(+el.value))} de ${L(+el.value)}` : ''; },
-  'cli-q'(el){ UI.cli.q = el.value; },
+  'cli-q'(el){ UI.cli.q = el.value; liveSearch(el); },
   'tip-custom'(el){ UI.cli.tip={k:'custom', v:el.value}; clearTimeout(I.t); I.t=setTimeout(()=>{ const pos=el.selectionStart; render(); const n=document.querySelector('[data-inp="tip-custom"]'); if(n){ n.focus(); try{n.setSelectionRange(pos,pos);}catch(_){} } }, 500); },
   'cc-num'(el){ const v=el.value.replace(/\D/g,'').slice(0,16); el.value=v.replace(/(.{4})/g,'$1 ').trim(); $('#pc-n').textContent=(v+'•'.repeat(16-v.length)).replace(/(.{4})/g,'$1 ').trim(); },
   'cc-holder'(el){ $('#pc-h').textContent = el.value.toUpperCase() || 'NOMBRE DEL TITULAR'; },
@@ -3831,6 +3881,40 @@ async function syncStart(){
   setInterval(syncPoll, 1500); document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncPoll(); });
 }
 
+
+/* ------------------------- búsqueda en vivo ------------------------- */
+function liveSearch(input){
+  const f = input.closest('form'), q = input.value.trim(), res = q ? searchCats(q) : [];
+  let box = f.querySelector('.sugg');
+  if(!box){ box=document.createElement('div'); box.className='sugg'; box.id='sugg'; box.setAttribute('role','listbox'); f.appendChild(box); }
+  const marks = w => { const fq=fold(q).split(/\s+/).filter(Boolean); return esc(w); };
+  if(!q){ box.innerHTML=''; box.hidden=true; input.setAttribute('aria-expanded','false'); }
+  else {
+    box.hidden=false; input.setAttribute('aria-expanded','true');
+    box.innerHTML = res.length ? res.slice(0,6).map((r,i)=>`<button type="button" role="option" aria-selected="${i===0}" data-act="book-start" data-cat="${r.c.id}" data-q="${esc(q)}"><span class="si">${ic(r.c.icon,18)}</span><span class="grow"><b>${hl(r.c.name,q)}</b><small>${r.hit?`Coincide con “${esc(r.hit)}” · `:''}${esc(r.c.ex)}</small></span>${ic('right',15)}</button>`).join('')
+      : `<div class="sugg-empty">${ic('search',16)} Sin coincidencias para “${esc(q)}”. Probá con “fuga”, “luz” o “pintar”.</div>`;
+  }
+  // la grilla de servicios también se filtra mientras escribe
+  const ids = new Set(res.map(r=>r.c.id)), grid=document.querySelector('.cats');
+  if(grid){ const order = q ? res.map(r=>r.c.id) : CATS.map(c=>c.id);
+    grid.querySelectorAll('.cat').forEach(b=>{ const on=!q||ids.has(b.dataset.cat); b.hidden=!on; b.style.order = on ? order.indexOf(b.dataset.cat) : 99; }); }
+  const em=document.getElementById('cats-empty'); if(em){ em.hidden = !q || res.length>0; const e=em.querySelector('.q-echo'); if(e) e.textContent=q; }
+}
+// resalta en negrita las letras que coinciden con lo escrito
+function hl(name, q){ const n=fold(name), w=fold(q).split(/[^a-z0-9ñ]+/).filter(x=>x.length>=2);
+  for(const x of w){ const i = n.split(' ').reduce((acc,part,idx,arr)=>acc>=0?acc:(part.startsWith(x)?arr.slice(0,idx).join(' ').length+(idx?1:0):-1),-1);
+    if(i>=0) return esc(name.slice(0,i))+'<mark>'+esc(name.slice(i,i+x.length))+'</mark>'+esc(name.slice(i+x.length)); }
+  return esc(name); }
+document.addEventListener('keydown', e=>{
+  const inp = e.target.closest && e.target.closest('input[data-inp="cli-q"]'); if(!inp) return;
+  const box = inp.closest('form').querySelector('.sugg'); if(!box || box.hidden) return;
+  const opts=[...box.querySelectorAll('button')]; if(!opts.length) return;
+  let i = opts.findIndex(o=>o.getAttribute('aria-selected')==='true');
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); i = (i + (e.key==='ArrowDown'?1:-1) + opts.length) % opts.length; opts.forEach((o,k)=>o.setAttribute('aria-selected', k===i)); opts[i].scrollIntoView({block:'nearest'}); }
+  if(e.key==='Escape'){ box.hidden=true; inp.setAttribute('aria-expanded','false'); }
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.hero .search')) document.querySelectorAll('.sugg').forEach(b=>b.hidden=true); });
+document.addEventListener('focusin', e=>{ if(e.target.matches && e.target.matches('input[data-inp="cli-q"]') && e.target.value.trim()) liveSearch(e.target); });
 /* ---------------------- llamadas de voz entre dispositivos ---------------------- */
 // Audio directo entre los dos teléfonos (WebRTC). Supabase Realtime solo sirve para avisar y conectar las dos partes.
 // Ninguno ve el número del otro y la llamada no se graba.
