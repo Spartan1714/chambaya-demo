@@ -1750,7 +1750,6 @@ function cliShell(content){
       <button class="${v==='cuenta'?'on':''}" data-act="cli-nav" data-v="cuenta">${ic('user',17)}<span>Mi cuenta</span></button></nav>
     <div class="grow"></div>
     <span class="loc">${ic('pin',15)} ${esc(city(u.city).name)}</span>
-    <button class="c-me" data-act="cli-nav" data-v="cuenta" title="Mi cuenta" aria-label="Mi cuenta">${av(u.id,32)}</button>
     ${themeBtn()}
     <button class="icon-btn" data-act="cli-logout" title="Cerrar sesión" aria-label="Cerrar sesión">${ic('logout',16)}</button>
   </div></header><main class="c-main">${content}</main>`;
